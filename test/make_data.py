@@ -15,8 +15,8 @@ def make_data_set(num_points, start, min, max, step, filename):
     
     with open(filename, 'w') as f:
         f.write(str(data_point) + '\n')
-        for i in range(num_points):
-            data_point += random.randint(-1, 1) * step
+        for i in range(num_points-1):
+            data_point += random.randint(-1, 1) * float(step)
             f.write(str(data_point) + '\n')
     
     
