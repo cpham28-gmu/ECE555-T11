@@ -1,1 +1,2 @@
-apt-get install libpng-devel libfftw3-devel python openmp
+apt-get install build-essential libpng-dev libfftw3-dev pip -y
+python -m pip install numpy

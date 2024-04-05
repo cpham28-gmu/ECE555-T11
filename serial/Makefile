@@ -6,8 +6,8 @@ CFLAGS=-g -O1 $(WARNINGS)
 
 ALL = test
 
-test		:	test.cpp
-				g++ $(CFLAGS) -fopenmp -I../kissfft/ test.cpp -o test  -L../lib/  -lkissfft-float-openmp
+test		:	*.cpp
+				g++ $(CFLAGS) -fopenmp -I../kissfft/ -I./*.h *.cpp -o test -lkissfft-float-openmp
 
 clean:
 	rm -f *.o 

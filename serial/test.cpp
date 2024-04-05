@@ -1,31 +1,35 @@
-#include "kiss_fft.h"
 #include <complex>
 #include <string>
 #include <iostream>
 #include <vector>
-#include <kiss_fftr.h>
+
+#include "kiss_fftr.h"
+#include "peaks.h"
 
 using namespace std;
 
+#define DEBUG_ARR_CONTENTS 1
+
 #define DEFAULT_FILE_NAME "data.csv"
 #define FFT_SIZE 1024
+#define MIN_ENTRIES 10
 
 float input_arr[FFT_SIZE];
 
-void dump_float(float *arr, int n)
+void dump_float(vector<float> arr)
 {
-    for (int i = 0; i < n; i++)
-    {
-        printf("\t%f\n", arr[i]);
-    }
+    for (auto i : arr)
+        cout << i << ' ';
+    cout << endl
+         << endl;
 }
 
-void dump_cmplx(kiss_fft_cpx *arr, int n)
+void dump_cmplx(vector<kiss_fft_cpx> arr)
 {
-    for (int i = 0; i < n; i++)
-    {
-        printf("\t%f:%f\n", arr[i].r / n, arr[i].i);
-    }
+    for (auto i : arr)
+        cout << i.r << "+(" << i.i << ")i ";
+    cout << endl
+         << endl;
 }
 
 /*
@@ -54,60 +58,94 @@ int create(string filename)
         input_arr[i] = strtof(buff, &end);
         // printf("%lld\n", NumbersO[i]);
     }
+    fclose(f);
 
     return i;
 }
 
 int main(int argc, char *argv[])
 {
+    // Take in file name as arg
     string filename = DEFAULT_FILE_NAME;
     if (argc > 1)
     {
         filename = argv[1];
     }
 
+    // Pull entries from data points
     int count = create(filename);
 
     cout << "Took in " << count << " entries" << endl;
 
-    if (count <= 0)
+    // don't run
+    if (count <= MIN_ENTRIES)
     {
-        cout << "Nothing to process! Exiting..." << endl;
+        cout << "Not enough data to process! Exiting..." << endl;
         return -1;
     }
 
     // subtract one if odd since kissfft needs even numbers
     int nfft = count - (count % 2 == 1);
+    int bins = nfft / 2 + 1;
 
-    kiss_fftr_cfg fwd = kiss_fftr_alloc(nfft, 0, NULL, NULL);
-    kiss_fftr_cfg inv = kiss_fftr_alloc(nfft, 1, NULL, NULL);
+    // set up configs for foward FFTs
+    kiss_fftr_cfg cfg = kiss_fftr_alloc(nfft, 0, NULL, NULL);
 
-    vector<float> x(nfft, 0.0);
-    vector<kiss_fft_cpx> fx(nfft/2 + 1);
+    vector<float> x(nfft, 0.0);                 // input vector
+    vector<float> fx_mag_sq(bins, 0.0); // input vector
+    vector<kiss_fft_cpx> fx(bins);      // output vector
 
-    for (int i = 0; i < nfft; ++i)
+    // Populate the input vector with real values
+    for (int i = 0; i < nfft; i++)
     {
         x[i] = input_arr[i];
     }
 
-    cout << x.capacity() << endl;
-    for (float i : x)
-        cout << i << ' ';
-    cout << endl << endl;
+#if DEBUG_ARR_CONTENTS
+    printf("FFT inputs float: \n");
+    dump_float(x);
+#endif
 
-    kiss_fftr(fwd, &x[0], &fx[0]);
+    // Perform the FFT
+    kiss_fftr(cfg, &x[0], &fx[0]);
 
-    for (kiss_fft_cpx i : fx)
-        cout << i.r << ':' << i.i << ' ';
-    cout << endl << endl;
+    // Free the cfg and set up inverse
+    kiss_fft_free(cfg);
+    cfg = kiss_fftr_alloc(nfft, 1, NULL, NULL);
 
-    kiss_fftri(inv, (kiss_fft_cpx *)&fx[0], &x[0]);
+#if DEBUG_ARR_CONTENTS
+    printf("FFT results complex: \n");
+    dump_cmplx(fx);
+#endif
 
-    for (float i : x)
-        cout << i << ' ';
-    cout << endl << endl;
+    for (int i = 1; i < bins; i++)
+    {
+        fx_mag_sq[i] = fx[i].r * fx[i].r + fx[i].i * fx[i].i;
+    }
 
-    kiss_fft_free(fwd);
-    kiss_fft_free(inv);
+#if DEBUG_ARR_CONTENTS
+    printf("FFT results magnitude squared: \n");
+    dump_float(fx_mag_sq);
+#endif
+
+    // Perform peak analysis
+    vector<peak> peaks(nfft);
+    find_peaks(fx_mag_sq, peaks);
+
+    // Invert the FFT results back into the original inputs
+    kiss_fftri(cfg, (kiss_fft_cpx *)&fx[0], &x[0]);
+
+    // scale array back
+    for (int i = 0; i < nfft; i++)
+    {
+        x[i] /= nfft;
+    }
+
+#if DEBUG_ARR_CONTENTS
+    printf("\r\nFFT results inverted back: \n");
+    dump_float(x);
+#endif
+
+    kiss_fft_free(cfg);
     return 0;
 }
