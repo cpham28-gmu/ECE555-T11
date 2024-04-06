@@ -156,7 +156,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < nfft; i++)
     {
         float f  = alpha - (1.0 - alpha) * cos (factor * i);
-        x[i] /= nfft / f;
+        x[i] /= nfft * f;
     }
 
 #if DEBUG_ARR_CONTENTS
