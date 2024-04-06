@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
     printf("======================\n");
 
     // Normalize the data
-    //kernel<<<1, 128, 0, stream>>>(d_output, 1.f/FFT_SIZE);
+    kernel<<<1, 128, 0, stream>>>(d_output, 1.f/FFT_SIZE);
 
     // Magnitude
     for (int i = 0; i < (FFT_SIZE/2); i++)
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
     // Reverse FFT
     cufftExecC2R(planComp, d_output, d_input);
 
-    cudaMemcpyAsync(output.data(), d_input, sizeof(float) * input.size(), cudaMemcpyDeviceToHost, stream);
+    cudaMemcpyAsync(input.data(), d_input, sizeof(float) * input.size(), cudaMemcpyDeviceToHost, stream);
 
     printf("Values after inverted FFT:\n");
     for (auto &i : input) {
