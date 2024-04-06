@@ -95,6 +95,9 @@ int main(int argc, char *argv[])
     vector<float> fx_mag_sq(bins, 0.0); // input vector
     vector<kiss_fft_cpx> fx(bins);      // output vector
 
+    float alpha = 25.0/46;
+	float factor = 2.0 * M_PI / nfft;
+
     // Populate the input vector with real values
     for (int i = 0; i < nfft; i++)
     {
@@ -103,6 +106,18 @@ int main(int argc, char *argv[])
 
 #if DEBUG_ARR_CONTENTS
     printf("FFT inputs float: \n");
+    dump_float(x);
+#endif
+
+    // Populate the input vector with real values
+    for (int i = 0; i < nfft; i++)
+    {
+        float f  = alpha - (1.0 - alpha) * cos (factor * i);
+        x[i] *= f;
+    }
+
+    #if DEBUG_ARR_CONTENTS
+    printf("FFT inputs hamming windowed: \n");
     dump_float(x);
 #endif
 
@@ -118,10 +133,12 @@ int main(int argc, char *argv[])
     dump_cmplx(fx);
 #endif
 
-    for (int i = 1; i < bins; i++)
+    for (int i = 0; i < bins; i++)
     {
         fx_mag_sq[i] = fx[i].r * fx[i].r + fx[i].i * fx[i].i;
     }
+    fx_mag_sq[0] /= 2;
+    fx_mag_sq[bins-1] /= 2;
 
 #if DEBUG_ARR_CONTENTS
     printf("FFT results magnitude squared: \n");
@@ -138,7 +155,8 @@ int main(int argc, char *argv[])
     // scale array back
     for (int i = 0; i < nfft; i++)
     {
-        x[i] /= nfft;
+        float f  = alpha - (1.0 - alpha) * cos (factor * i);
+        x[i] /= nfft / f;
     }
 
 #if DEBUG_ARR_CONTENTS
