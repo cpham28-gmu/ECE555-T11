@@ -1,9 +1,11 @@
 #include <vector>
 using namespace std;
 
+#define FS          100
+
 typedef struct peak
 {
-    float frequency;
+    float bin;
     float value;
 } peak;
 

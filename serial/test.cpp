@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
     kiss_fftr_cfg cfg = kiss_fftr_alloc(nfft, 0, NULL, NULL);
 
     vector<float> x(nfft, 0.0);                 // input vector
-    vector<float> fx_mag_sq(bins, 0.0); // input vector
+    vector<float> fx_cmplx_mag(bins, 0.0); // input vector
     vector<kiss_fft_cpx> fx(bins);      // output vector
 
     float alpha = 25.0/46;
@@ -109,6 +109,7 @@ int main(int argc, char *argv[])
     dump_float(x);
 #endif
 
+    /*
     // Populate the input vector with real values
     for (int i = 0; i < nfft; i++)
     {
@@ -116,10 +117,11 @@ int main(int argc, char *argv[])
         x[i] *= f;
     }
 
-    #if DEBUG_ARR_CONTENTS
+#if DEBUG_ARR_CONTENTS
     printf("FFT inputs hamming windowed: \n");
     dump_float(x);
 #endif
+*/
 
     // Perform the FFT
     kiss_fftr(cfg, &x[0], &fx[0]);
@@ -135,19 +137,19 @@ int main(int argc, char *argv[])
 
     for (int i = 0; i < bins; i++)
     {
-        fx_mag_sq[i] = fx[i].r * fx[i].r + fx[i].i * fx[i].i;
+        fx_cmplx_mag[i] = sqrt(fx[i].r * fx[i].r + fx[i].i * fx[i].i);
     }
-    fx_mag_sq[0] /= 2;
-    fx_mag_sq[bins-1] /= 2;
+    fx_cmplx_mag[0] /= 2;
+    fx_cmplx_mag[bins-1] /= 2;
 
 #if DEBUG_ARR_CONTENTS
-    printf("FFT results magnitude squared: \n");
-    dump_float(fx_mag_sq);
+    printf("FFT results complex magnitude: \n");
+    dump_float(fx_cmplx_mag);
 #endif
 
     // Perform peak analysis
     vector<peak> peaks(nfft);
-    find_peaks(fx_mag_sq, peaks);
+    find_peaks(fx_cmplx_mag, peaks);
 
     // Invert the FFT results back into the original inputs
     kiss_fftri(cfg, (kiss_fft_cpx *)&fx[0], &x[0]);
@@ -160,8 +162,8 @@ int main(int argc, char *argv[])
     }
 
 #if DEBUG_ARR_CONTENTS
-    printf("\r\nFFT results inverted back: \n");
-    dump_float(x);
+    //printf("\r\nFFT results inverted back: \n");
+    //dump_float(x);
 #endif
 
     kiss_fft_free(cfg);

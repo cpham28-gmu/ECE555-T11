@@ -16,12 +16,16 @@ float get_max(vector<float> fftd)
     return max;
 }
 
-void show_peaks(vector<peak> peaks)
+float bin_to_frequency(float bin, int n){
+    return bin * FS/2/(n);
+}
+
+void show_peaks(vector<peak> peaks, int n)
 {
     for (auto p : peaks)
     {
-        if(p.frequency == 0 && p.value == 0) continue;
-        printf("freq:%f, val:%f\n", p.frequency, p.value);
+        if((p.bin == 0 && p.value == 0) || p.bin == n) continue;
+        printf("bin:%f, freq:%f, val:%f\n", p.bin, bin_to_frequency(p.bin, n), p.value);
     }
 }
 
@@ -57,13 +61,8 @@ void find_peaks(vector<float> fftd, vector<peak> peaks)
             peak_val = fftd[++pt];
         }
 
-        /*
-        if (peak_count + 1 >= MAX_PEAKS){
-            break;
-        }
-        */
         // Add peak to the return vector
-        peaks[peak_count].frequency = pt;
+        peaks[peak_count].bin = pt;
         peaks[peak_count].value = peak_val;
         peak_count++;
 
@@ -74,7 +73,5 @@ void find_peaks(vector<float> fftd, vector<peak> peaks)
         }
     }
 
-    show_peaks(peaks);
-
-    //return peaks;
+    show_peaks(peaks, nfft);
 }
