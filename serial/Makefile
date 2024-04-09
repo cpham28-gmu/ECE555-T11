@@ -1,13 +1,13 @@
-WARNINGS=-W -Wall -Waggregate-return \
-    -Wcast-align -Wcast-qual -Wshadow \
-    -Wwrite-strings
+WARNINGS=-W -Wall -Wwrite-strings\
+    -Wcast-align -Wcast-qual -Wshadow
+    
 
 CFLAGS=-g -O1 $(WARNINGS)
 
-ALL = test
+ALL = serial
 
-test		:	*.cpp
-				g++ $(CFLAGS) -fopenmp -I../kissfft/ -I./*.h *.cpp -o test -lkissfft-float-openmp
+serial 		:	*.cpp
+				g++ $(CFLAGS) -I../kissfft/ -I./*.h *.cpp -o serial -lkissfft-float
 
 clean:
 	rm -f *.o 

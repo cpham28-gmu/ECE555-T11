@@ -63,7 +63,7 @@ void find_peaks(vector<float> fftd, vector<peak> peaks)
 
         // Add peak to the return vector
         peaks[peak_count].bin = pt;
-        peaks[peak_count].value = peak_val;
+        peaks[peak_count].value = peak_val/(nfft-1);
         peak_count++;
 
         float last_val = fftd[++pt];
