@@ -30,7 +30,6 @@ int create(string filename)
         if (fgets(buff, 255, (FILE *)f) == NULL)
             break;
         input[i] = strtod(buff, &end);
-        // printf("%lld\n", NumbersO[i]);
     }
     fclose(f);
 
@@ -40,6 +39,8 @@ int create(string filename)
 /*
     CUDA kernel for applying scale to the results of the Forward FFT,
     Normalizes the results before magnitude and peak analysis
+
+    Treid to use this kernel, but it was faster to scale in the main loop without a kernel
 */
 __global__
 void kernel(cufftComplex* data, float scale) {
@@ -58,19 +59,12 @@ int main(int argc, char *argv[]) {
     cudaEvent_t time1, time2, time3, time4;
     float totalTime, ForFFTTime, ScalMagTime, RevFFTTime;
     int bins = FFT_SIZE/2 + 1;
-    int blockSize = 100;
 
     vector<float> data_mag_sq(bins, 0);
     vector<complex<float>> output(bins);
 
     // Take in file name as arg
     string filename = DEFAULT_FILE_NAME;
-    if (argc > 1)
-    {
-        int block = atoi(argv[1]);
-        blockSize = block;
-        printf("using %d block(s)\n", blockSize);
-    }
 
     // Pull entries from data points
     int count = create(filename);
@@ -126,7 +120,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Normalize the data
-    kernel<<<blockSize, FFT_SIZE/blockSize, 0, stream>>>(d_output, 1.f/(bins-1));
+    // //kernel<<<blockSize, FFT_SIZE/blockSize, 0, stream>>>(d_output, 1.f/(bins-1));
 
     cudaMemcpyAsync(output.data(), d_output, sizeof(complex<float>) * output.size(), cudaMemcpyDeviceToHost, stream);
 
@@ -139,6 +133,12 @@ int main(int argc, char *argv[]) {
     }
     data_mag_sq[0] /= 2;
     data_mag_sq[bins-1] /= 2;
+
+    // scale the data correctly
+    for (int i = 0; i < bins; i++)
+    {
+        data_mag_sq[i] /= bins-1;
+    }
 
     if (debug){
         printf("Values with magnitude squared:\n");
