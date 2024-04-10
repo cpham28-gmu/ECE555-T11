@@ -13,4 +13,4 @@ make FFT_CUDA
 ./FFT_CUDA
 ```
 
-the FFT_SIZE can be changed by editing the FFT_SZIE in the top of the file **note that it needs to be a power of 2**
+the FFT_SIZE can be changed by editing the FFT_SIZE in the top of the file **note that it needs to be a power of 2**
