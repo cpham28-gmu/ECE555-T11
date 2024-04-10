@@ -1,13 +1,13 @@
-WARNINGS=-W -Wall -Wwrite-strings\
-    -Wcast-align -Wcast-qual -Wshadow
-    
+WARNINGS=-W -Wall \
+    -Wcast-align -Wcast-qual -Wshadow \
+    -Wwrite-strings
 
 CFLAGS=-g -O1 $(WARNINGS)
 
-ALL = serial
+ALL = test
 
-serial 		:	*.cpp
-				g++ $(CFLAGS) -I../kissfft/ -I./*.h *.cpp -o serial -lkissfft-float
+test		:	*.cpp
+				g++ $(CFLAGS) -I../kissfft/ -I./*.h *.cpp -o test ../lib/libkissfft-float.a
 
 clean:
 	rm -f *.o 
