@@ -4,10 +4,10 @@ WARNINGS=-W -Wall \
 
 CFLAGS=-g -O1 $(WARNINGS)
 
-ALL = test
+ALL = serial
 
-test		:	*.cpp
-				g++ $(CFLAGS) -I../kissfft/ -I./*.h *.cpp -o test ../lib/libkissfft-float.a
+serial		:	*.cpp
+				g++ $(CFLAGS) -I../kissfft/ -I./*.h *.cpp -o serial ../lib/libkissfft-float.a
 
 clean:
 	rm -f *.o 

@@ -13,7 +13,7 @@ float get_max(vector<float> fftd)
         if (val > max)
             max = val;
     }
-    return max;
+    return max/(fftd.size()-1);
 }
 
 float bin_to_frequency(float bin, int n){
